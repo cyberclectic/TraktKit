@@ -64,6 +64,31 @@ public struct TraktShow: Codable, Hashable {
         case airedEpisodes = "aired_episodes"
     }
     
+    // ScrobbleIt: Added for convenience init
+    public init() {
+        title = ""
+        year = nil
+        ids = ID.init()
+        
+        overview = nil
+        firstAired = nil
+        airs = nil
+        runtime = nil
+        certification = nil
+        network = nil
+        country = nil
+        trailer = nil
+        homepage = nil
+        status = nil
+        rating = nil
+        votes = nil
+        updatedAt = nil
+        language = nil
+        availableTranslations = nil
+        genres = nil
+        airedEpisodes = nil
+    }
+    
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         title = try container.decode(String.self, forKey: CodingKeys.title)

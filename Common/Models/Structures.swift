@@ -28,6 +28,16 @@ public struct ID: Codable, Hashable {
         case tmdb
         case tvRage = "tvrage"
     }
+    
+    // ScrobbleIt: Adding for convenience init
+    public init() {
+        trakt = 0
+        slug = ""
+        tvdb = nil
+        imdb = nil
+        tmdb = nil
+        tvRage = nil
+    }
 }
 
 public struct SeasonId: Codable, Hashable {
