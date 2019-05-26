@@ -48,6 +48,27 @@ public struct TraktMovie: Codable, Hashable {
         case genres
         case certification
     }
+    
+    // ScrobbleIt: Added for convenience init
+    public init() {
+        title = ""
+        year = nil
+        ids = ID.init()
+        
+        overview = nil
+        tagline = nil
+        released = nil
+        runtime = nil
+        certification = nil
+        trailer = nil
+        homepage = nil
+        rating = nil
+        votes = nil
+        updatedAt = nil
+        language = nil
+        availableTranslations = nil
+        genres = nil
+    }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
