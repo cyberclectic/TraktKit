@@ -35,6 +35,9 @@ public class TraktManager {
     
     // MARK: Internal
     private var staging: Bool?
+    public var clientID: String?
+    public var clientSecret: String?
+    public var redirectURI: String?
     private var baseURL: String?
     private var APIBaseURL: String?
     
