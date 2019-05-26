@@ -37,7 +37,11 @@ public struct User: Codable, Hashable {
     }
     
     public struct Avatar: Codable {
-        public let full: URL
+        public let url: URL
+        
+        enum CodingKeys: String, CodingKey {
+            case url = "full"
+        }
     }
     
     enum CodingKeys: String, CodingKey {
