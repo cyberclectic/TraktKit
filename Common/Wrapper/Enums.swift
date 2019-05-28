@@ -161,8 +161,6 @@ public enum LookupType {
 public enum Type: String, CustomStringConvertible {
     case Movies = "movies"
     case Shows = "shows"
-    case TV = "tv" // ScrobbleIt: Add
-    case Movie = "movie"// Scrobbleit: Add
 
     public var description: String {
         return self.rawValue
