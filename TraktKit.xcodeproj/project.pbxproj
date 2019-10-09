@@ -464,6 +464,9 @@
 		B3167ECC2459FDBB00D51968 /* Languages.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3167ECB2459FDBB00D51968 /* Languages.swift */; };
 		B3167ED02459FDF800D51968 /* Language.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3167ECF2459FDF800D51968 /* Language.swift */; };
 		EFAB936D246504E700DAA9F6 /* test_get_watched_shows_noseasons.json in Resources */ = {isa = PBXBuildFile; fileRef = EFAB936C246504E700DAA9F6 /* test_get_watched_shows_noseasons.json */; };
+		EF284BB5234D62B60053ECE0 /* AuthenticationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A75DB4DE234C0BAE0028E0D0 /* AuthenticationInfo.swift */; };
+		EF284BB6234D62B60053ECE0 /* AuthenticationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A75DB4DE234C0BAE0028E0D0 /* AuthenticationInfo.swift */; };
+		EF284BB7234D62B70053ECE0 /* AuthenticationInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A75DB4DE234C0BAE0028E0D0 /* AuthenticationInfo.swift */; };
 		EFA909F9229ACF2A004267C6 /* TraktKitTVOS.h in Headers */ = {isa = PBXBuildFile; fileRef = EFA909F7229ACF2A004267C6 /* TraktKitTVOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EFA909FE229ACF3F004267C6 /* URLSessionProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 706B9EE920557BA2002B59FC /* URLSessionProtocol.swift */; };
 		EFA909FF229ACF3F004267C6 /* TraktManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A77E86851B29F16C00EABC2D /* TraktManager.swift */; };
@@ -544,7 +547,7 @@
 		EFA90A4D229ACFBE004267C6 /* AccountSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7054626F1EF36D14003BB24B /* AccountSettings.swift */; };
 		EFA90A4E229ACFBE004267C6 /* FollowRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 705462741EF36F9F003BB24B /* FollowRequest.swift */; };
 		EFA90A4F229ACFBE004267C6 /* Likes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7054627E1EF3726B003BB24B /* Likes.swift */; };
-		EFA90A50229ACFBE004267C6 /* UsersCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 705462821EF3744A003BB24B /* UsersCollection.swift */; };
+		EFA90A50229ACFBE004267C6 /* (null) in Sources */ = {isa = PBXBuildFile; };
 		EFA90A51229ACFBE004267C6 /* UsersComments.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C39F3B1EF3869100C3F6A4 /* UsersComments.swift */; };
 		EFA90A52229ACFBE004267C6 /* TraktUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7AF988B1CBF4B8E00744566 /* TraktUser.swift */; };
 		EFA90A53229ACFBE004267C6 /* TraktWatching.swift in Sources */ = {isa = PBXBuildFile; fileRef = A79E562F1D4FBE43009CACC7 /* TraktWatching.swift */; };
@@ -1974,6 +1977,7 @@
 				705462781EF36FA2003BB24B /* FollowRequest.swift in Sources */,
 				70393F2E1F3F2AC500943D34 /* AddToCollectionResult.swift in Sources */,
 				A708073B1D8E1F5A00176B0A /* TraktWatchedShow.swift in Sources */,
+				EF284BB6234D62B60053ECE0 /* AuthenticationInfo.swift in Sources */,
 				706B9EEC20557BA2002B59FC /* URLSessionProtocol.swift in Sources */,
 				700FED1D1F3FB89900169961 /* Movies.swift in Sources */,
 				70D369912066DB0F0008B9D7 /* TraktAttachedMediaItem.swift in Sources */,
@@ -2074,6 +2078,7 @@
 				A7582C0A1CCA6FF600B3CF63 /* MLKeychain.swift in Sources */,
 				702631EE1E6682F9006F323B /* TraktWatchedProgress.swift in Sources */,
 				705462771EF36FA2003BB24B /* FollowRequest.swift in Sources */,
+				EF284BB5234D62B60053ECE0 /* AuthenticationInfo.swift in Sources */,
 				706B9EEB20557BA2002B59FC /* URLSessionProtocol.swift in Sources */,
 				A7582BF61CCA6FE900B3CF63 /* TraktWatchedSeason.swift in Sources */,
 				70D369902066DB0F0008B9D7 /* TraktAttachedMediaItem.swift in Sources */,
@@ -2257,6 +2262,7 @@
 				EFA90A48229ACFB7004267C6 /* AddToCollectionResult.swift in Sources */,
 				EFA90A2A229ACFA4004267C6 /* TraktMovie.swift in Sources */,
 				EFA90A52229ACFBE004267C6 /* TraktUser.swift in Sources */,
+				EF284BB7234D62B70053ECE0 /* AuthenticationInfo.swift in Sources */,
 				EFA90A19229ACF87004267C6 /* Structures.swift in Sources */,
 				EFA90A5D229ACFBE004267C6 /* TraktListItem.swift in Sources */,
 				EFA90A30229ACFA4004267C6 /* TraktMovieRelease.swift in Sources */,
@@ -2331,7 +2337,7 @@
 				EFA90A0B229ACF3F004267C6 /* Search.swift in Sources */,
 				EFA90A28229ACFA0004267C6 /* Genre.swift in Sources */,
 				EFA90A5A229ACFBE004267C6 /* Friend.swift in Sources */,
-				EFA90A50229ACFBE004267C6 /* UsersCollection.swift in Sources */,
+				EFA90A50229ACFBE004267C6 /* (null) in Sources */,
 				EFA90A2B229ACFA4004267C6 /* TraktMovieTranslation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
