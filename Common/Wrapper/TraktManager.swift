@@ -121,7 +121,7 @@ public class TraktManager {
     
     // MARK: - Lifecycle
     
-    public init(session: URLSessionProtocol = URLSession(configuration: .default)) {
+    public init(session: URLSessionProtocol = URLSession(configuration: .ephemeral)) {
         self.session = session
     }
     
@@ -207,9 +207,7 @@ public class TraktManager {
         guard let url = components.url else { return nil }
         var request = URLRequest(url: url)
         request.httpMethod = httpMethod.rawValue
-        
-        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-        
+                
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("2", forHTTPHeaderField: "trakt-api-version")
         if let clientID = clientID {
