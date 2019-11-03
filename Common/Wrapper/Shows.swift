@@ -205,11 +205,12 @@ extension TraktManager {
      🔒 OAuth: Required
      */
     @discardableResult
-    public func getShowWatchedProgress<T: CustomStringConvertible>(showID id: T, hidden: Bool = false, specials: Bool = false, completion: @escaping ShowWatchedProgressCompletionHandler) -> URLSessionDataTaskProtocol? {
+    public func getShowWatchedProgress<T: CustomStringConvertible>(showID id: T, hidden: Bool = false, specials: Bool = false, extended: [ExtendedType] = [.Min], completion: @escaping ShowWatchedProgressCompletionHandler) -> URLSessionDataTaskProtocol? {
         guard
             let request = mutableRequest(forPath: "shows/\(id)/progress/watched",
                                          withQuery: ["hidden": "\(hidden)",
-                                                     "specials": "\(specials)"],
+                                                     "specials": "\(specials)",
+                                                     "extended": extended.queryString()],
                                          isAuthorized: true,
                                          withHTTPMethod: .GET) else { return nil }
         return performRequest(request: request,
