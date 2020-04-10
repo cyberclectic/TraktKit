@@ -31,19 +31,6 @@ public struct User: Codable, Hashable {
     public let vipOG: Bool?
     public let vipYears: Int?
     
-    // ScrobbleIt : Added ability to get user Avatar
-    public struct Images: Codable {
-        public let avatar: Avatar
-    }
-    
-    public struct Avatar: Codable {
-        public let url: URL
-        
-        enum CodingKeys: String, CodingKey {
-            case url = "full"
-        }
-    }
-    
     enum CodingKeys: String, CodingKey {
         case username
         case isPrivate = "private"
@@ -59,7 +46,6 @@ public struct User: Codable, Hashable {
         case images
         case vipOG = "vip_og"
         case vipYears = "vip_years"
-        case images
     }
 
     public struct IDs: Codable, Hashable {
