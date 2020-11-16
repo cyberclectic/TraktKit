@@ -19,9 +19,19 @@ extension TraktManager {
      - parameter days: Number of days to display. Example: `7`.
      */
     @discardableResult
-    public func myShows(startDateString dateString: String, days: Int, completion: @escaping ObjectsCompletionHandler<CalendarShow>) -> URLSessionDataTaskProtocol? {
+    public func myShows(startDateString dateString: String, days: Int, extended: [ExtendedType] = [.Min],  filters: [Filter]? = nil, completion: @escaping ObjectsCompletionHandler<CalendarShow>) -> URLSessionDataTaskProtocol? {
+
+        var query: [String: String] = ["extended": extended.queryString()]
+
+        // Filters
+        if let filters = filters {
+            for (key, value) in (filters.map { $0.value() }) {
+                query[key] = value
+            }
+        }
+        
         guard let request = mutableRequest(forPath: "calendars/my/shows/\(dateString)/\(days)",
-                                           withQuery: [:],
+                                           withQuery: query,
                                            isAuthorized: true,
                                            withHTTPMethod: .GET) else { return nil }
         return performRequest(request: request,

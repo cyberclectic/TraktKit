@@ -27,9 +27,9 @@ public class TraktManager {
     
     // MARK: Internal
     private var staging: Bool?
-    private var clientID: String?
-    private var clientSecret: String?
-    private var redirectURI: String?
+    public var clientID: String?
+    public var clientSecret: String?
+    public var redirectURI: String?
     private var baseURL: String?
     private var APIBaseURL: String?
     private var isWaitingToToken: Bool = false
@@ -43,7 +43,7 @@ public class TraktManager {
     let accessTokenKey = "accessToken"
     let refreshTokenKey = "refreshToken"
     
-    let session: URLSessionProtocol
+    public let session: URLSessionProtocol
     
     // MARK: Public
     public static let sharedManager = TraktManager()
@@ -164,7 +164,7 @@ public class TraktManager {
         UserDefaults.standard.removeObject(forKey: Constants.tokenExpirationDefaultsKey)
     }
     
-    internal func mutableRequestForURL(_ url: URL?, authorization: Bool, HTTPMethod: Method) -> URLRequest? {
+    public func mutableRequestForURL(_ url: URL?, authorization: Bool, HTTPMethod: Method) -> URLRequest? {
         guard
             let url = url else { return nil }
         var request = URLRequest(url: url)

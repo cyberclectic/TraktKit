@@ -174,6 +174,7 @@ public enum Type: String, CustomStringConvertible {
 }
 
 public enum WatchedType: String, CustomStringConvertible {
+    case All = "all"
     case Movies = "movies"
     case Shows = "shows"
     case Seasons = "seasons"

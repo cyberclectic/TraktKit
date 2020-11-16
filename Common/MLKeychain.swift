@@ -23,7 +23,7 @@ let kSecAttrAccessibleAfterFirstUnlockValue = kSecAttrAccessibleAfterFirstUnlock
 
 public class MLKeychain {
     
-    class func setString(value: String, forKey key: String) -> Bool {
+    public class func setString(value: String, forKey key: String) -> Bool {
         let data = value.data(using: String.Encoding.utf8, allowLossyConversion: false)!
         
         let keychainQuery: [String: Any] = [
@@ -41,7 +41,7 @@ public class MLKeychain {
         return result == errSecSuccess
     }
     
-    class func loadData(forKey key: String) -> Data? {
+    public class func loadData(forKey key: String) -> Data? {
         let keychainQuery: [String: Any] = [
             kSecClassValue: kSecClassGenericPasswordValue,
             kSecAttrAccountValue: key,
@@ -72,7 +72,7 @@ public class MLKeychain {
     }
     
     @discardableResult
-    class func deleteItem(forKey key: String) -> Bool {
+    public class func deleteItem(forKey key: String) -> Bool {
         let query: [String: Any] = [
             kSecClassValue: kSecClassGenericPasswordValue,
             kSecAttrAccountValue: key
