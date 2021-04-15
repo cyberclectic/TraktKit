@@ -40,6 +40,11 @@ extension TraktManager {
         case fail
     }
     
+    public enum ProgressResultType {
+        case success
+        case fail(Int)
+    }
+    
     public enum WatchingResultType {
         case checkedIn(watching: TraktWatching)
         case notCheckedIn
@@ -47,9 +52,41 @@ extension TraktManager {
     }
     
     public enum CheckinResultType {
-        case success(checkin: TraktCheckin)
+        case success(checkin: TraktCheckinResponse)
         case checkedIn(expiration: Date)
         case error(error: Error?)
+    }
+    
+    public enum TraktKitError: Error {
+        case couldNotParseData
+        case handlingRetry
+    }
+    
+    public enum TraktError: Error {
+        /// Bad Request - request couldn't be parsed
+        case badRequest
+        /// Oauth must be provided
+        case unauthorized
+        /// Forbidden - invalid API key or unapproved app
+        case forbidden
+        /// Not Found - method exists, but no record found
+        case noRecordFound
+        /// Method Not Found - method doesn't exist
+        case noMethodFound
+        /// Conflict - resource already created
+        case resourceAlreadyCreated
+        /// Locked User Account - have the user contact support
+        case accountLocked
+        /// VIP Only - user must upgrade to VIP
+        case vipOnly
+        /// Rate Limit Exceeded
+        case rateLimitExceeded(HTTPURLResponse)
+        /// Service Unavailable - server overloaded (try again in 30s)
+        case serverOverloaded
+        /// Service Unavailable - Cloudflare error
+        case cloudflareError
+        /// Full url response
+        case unhandled(HTTPURLResponse)
     }
     
     // MARK: - Completion handlers
@@ -61,6 +98,7 @@ extension TraktManager {
     
     public typealias DataResultCompletionHandler = (_ result: DataResultType) -> Void
     public typealias SuccessCompletionHandler = (_ result: SuccessResultType) -> Void
+    public typealias ProgressCompletionHandler = (_ result: ProgressResultType) -> Void
     public typealias CommentsCompletionHandler = paginatedCompletionHandler<Comment>
 //    public typealias CastCrewCompletionHandler = ObjectCompletionHandler<CastAndCrew>
     
@@ -124,6 +162,52 @@ extension TraktManager {
     public typealias UserStatsCompletion = ObjectCompletionHandler<UserStats>
     public typealias UserWatchedCompletion = ObjectsCompletionHandler<TraktWatchedItem>
     
+    // MARK: - Error handling
+    
+    private func handleResponse(response: URLResponse?, retry: @escaping (() -> Void)) throws {
+        guard let httpResponse = response as? HTTPURLResponse else { throw TraktKitError.couldNotParseData }
+        
+        guard 200...299 ~= httpResponse.statusCode else {
+            switch httpResponse.statusCode {
+            case StatusCodes.BadRequest:
+                throw TraktError.badRequest
+            case StatusCodes.Unauthorized:
+                throw TraktError.unauthorized
+            case StatusCodes.Forbidden:
+                throw TraktError.forbidden
+            case StatusCodes.NotFound:
+                throw TraktError.noRecordFound
+            case StatusCodes.MethodNotFound:
+                throw TraktError.noMethodFound
+            case StatusCodes.Conflict:
+                throw TraktError.resourceAlreadyCreated
+            case StatusCodes.acountLocked:
+                throw TraktError.accountLocked
+            case StatusCodes.vipOnly:
+                throw TraktError.vipOnly
+            case StatusCodes.RateLimitExceeded:
+                if let retryAfter = httpResponse.allHeaderFields["retry-after"] as? String,
+                   let retryInterval = TimeInterval(retryAfter) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + retryInterval) {
+                        retry()
+                    }
+                    /// To ensure completionHandler isn't called when retrying.
+                    throw TraktKitError.handlingRetry
+                } else {
+                    throw TraktError.rateLimitExceeded(httpResponse)
+                }
+                
+            case 503, 504:
+                throw TraktError.serverOverloaded
+            case 500...600:
+                throw TraktError.cloudflareError
+            default:
+                throw TraktError.unhandled(httpResponse)
+            }
+            return
+        }
+    }
+    
     // MARK: - Perform Requests
     
     /// Data
@@ -135,29 +219,24 @@ extension TraktManager {
                 return
             }
             
-            guard let httpResponse = response as? HTTPURLResponse else { return completion(.error(error: nil)) }
-            
             // Check response
-            guard 200...299 ~= httpResponse.statusCode else {
-                switch httpResponse.statusCode {
-                case StatusCodes.RateLimitExceeded:
-                    if let retryAfter = httpResponse.allHeaderFields["Retry-After"] as? String,
-                       let retryInterval = TimeInterval(retryAfter) {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + retryInterval) {
-                            _ = self.performRequest(request: request, completion: completion)
-                        }
-                    } else {
-                        completion(.error(error: self.createErrorWithStatusCode(httpResponse.statusCode)))
-                    }
+            do {
+                try self.handleResponse(response: response, retry: {
+                    _ = self.performRequest(request: request, completion: completion)
+                })
+            } catch {
+                switch error {
+                case TraktKitError.handlingRetry:
+                    break
                 default:
-                    completion(.error(error: self.createErrorWithStatusCode(httpResponse.statusCode)))
+                    completion(.error(error: error))
                 }
                 return
             }
             
             // Check data
             guard let data = data else {
-                completion(.error(error: TraktKitNoDataError))
+                completion(.error(error: TraktKitError.couldNotParseData))
                 return
             }
             completion(.success(data: data))
@@ -175,20 +254,15 @@ extension TraktManager {
                 return
             }
             
-            guard let httpResponse = response as? HTTPURLResponse else { return completion(.fail) }
-            
             // Check response
-            guard 200...299 ~= httpResponse.statusCode else {
-                switch httpResponse.statusCode {
-                case StatusCodes.RateLimitExceeded:
-                    if let retryAfter = httpResponse.allHeaderFields["Retry-After"] as? String,
-                       let retryInterval = TimeInterval(retryAfter) {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + retryInterval) {
-                            _ = self.performRequest(request: request, completion: completion)
-                        }
-                    } else {
-                        completion(.fail)
-                    }
+            do {
+                try self.handleResponse(response: response, retry: {
+                    _ = self.performRequest(request: request, completion: completion)
+                })
+            } catch {
+                switch error {
+                case TraktKitError.handlingRetry:
+                    break
                 default:
                     completion(.fail)
                 }
@@ -212,14 +286,14 @@ extension TraktManager {
 
             // Check data
             guard let data = data else {
-                completion(.error(error: TraktKitNoDataError))
+                completion(.error(error: TraktKitError.couldNotParseData))
                 return
             }
 
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .custom(customDateDecodingStrategy)
 
-            if let checkin = try? decoder.decode(TraktCheckin.self, from: data) {
+            if let checkin = try? decoder.decode(TraktCheckinResponse.self, from: data) {
                 completion(.success(checkin: checkin))
                 return
             } else if let jsonObject = try? JSONSerialization.jsonObject(with: data, options: .allowFragments),
@@ -230,22 +304,17 @@ extension TraktManager {
                 return
             }
             
-            guard let httpResponse = response as? HTTPURLResponse else { return completion(.error(error: nil)) }
-
             // Check response
-            guard 200...299 ~= httpResponse.statusCode else {
-                switch httpResponse.statusCode {
-                case StatusCodes.RateLimitExceeded:
-                    if let retryAfter = httpResponse.allHeaderFields["Retry-After"] as? String,
-                       let retryInterval = TimeInterval(retryAfter) {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + retryInterval) {
-                            _ = self.performRequest(request: request, completion: completion)
-                        }
-                    } else {
-                        completion(.error(error: self.createErrorWithStatusCode(httpResponse.statusCode)))
-                    }
+            do {
+                try self.handleResponse(response: response, retry: {
+                    _ = self.performRequest(request: request, completion: completion)
+                })
+            } catch {
+                switch error {
+                case TraktKitError.handlingRetry:
+                    break
                 default:
-                    completion(.error(error: self.createErrorWithStatusCode(httpResponse.statusCode)))
+                    completion(.error(error: error))
                 }
                 return
             }
@@ -287,29 +356,24 @@ extension TraktManager {
                 return
             }
             
-            guard let httpResponse = response as? HTTPURLResponse else { return completion(.error(error: nil)) }
-            
             // Check response
-            guard 200...299 ~= httpResponse.statusCode else {
-                switch httpResponse.statusCode {
-                case StatusCodes.RateLimitExceeded:
-                    if let retryAfter = httpResponse.allHeaderFields["Retry-After"] as? String,
-                       let retryInterval = TimeInterval(retryAfter) {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + retryInterval) {
-                            _ = self.performRequest(request: request, completion: completion)
-                        }
-                    } else {
-                        completion(.error(error: self.createErrorWithStatusCode(httpResponse.statusCode)))
-                    }
+            do {
+                try self.handleResponse(response: response, retry: {
+                    _ = self.performRequest(request: request, completion: completion)
+                })
+            } catch {
+                switch error {
+                case TraktKitError.handlingRetry:
+                    break
                 default:
-                    completion(.error(error: self.createErrorWithStatusCode(httpResponse.statusCode)))
+                    completion(.error(error: error))
                 }
                 return
             }
             
             // Check data
             guard let data = data else {
-                completion(.error(error: TraktKitNoDataError))
+                completion(.error(error: TraktKitError.couldNotParseData))
                 return
             }
             
@@ -339,19 +403,16 @@ extension TraktManager {
             guard let httpResponse = response as? HTTPURLResponse else { return completion(.error(error: nil)) }
             
             // Check response
-            guard 200...299 ~= httpResponse.statusCode else {
-                switch httpResponse.statusCode {
-                case StatusCodes.RateLimitExceeded:
-                    if let retryAfter = httpResponse.allHeaderFields["Retry-After"] as? String,
-                       let retryInterval = TimeInterval(retryAfter) {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + retryInterval) {
-                            _ = self.performRequest(request: request, completion: completion)
-                        }
-                    } else {
-                        completion(.error(error: self.createErrorWithStatusCode(httpResponse.statusCode)))
-                    }
+            do {
+                try self.handleResponse(response: response, retry: {
+                    _ = self.performRequest(request: request, completion: completion)
+                })
+            } catch {
+                switch error {
+                case TraktKitError.handlingRetry:
+                    break
                 default:
-                    completion(.error(error: self.createErrorWithStatusCode(httpResponse.statusCode)))
+                    completion(.error(error: error))
                 }
                 return
             }
@@ -370,7 +431,7 @@ extension TraktManager {
             
             // Check data
             guard let data = data else {
-                completion(.error(error: TraktKitNoDataError))
+                completion(.error(error: TraktKitError.couldNotParseData))
                 return
             }
             
@@ -400,19 +461,16 @@ extension TraktManager {
             guard let httpResponse = response as? HTTPURLResponse else { return completion(.error(error: nil)) }
             
             // Check response
-            guard httpResponse.statusCode == StatusCodes.Success || httpResponse.statusCode == StatusCodes.SuccessNoContentToReturn else {
-                switch httpResponse.statusCode {
-                case StatusCodes.RateLimitExceeded:
-                    if let retryAfter = httpResponse.allHeaderFields["Retry-After"] as? String,
-                       let retryInterval = TimeInterval(retryAfter) {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + retryInterval) {
-                            _ = self.performRequest(request: request, completion: completion)
-                        }
-                    } else {
-                        completion(.error(error: self.createErrorWithStatusCode(httpResponse.statusCode)))
-                    }
+            do {
+                try self.handleResponse(response: response, retry: {
+                    _ = self.performRequest(request: request, completion: completion)
+                })
+            } catch {
+                switch error {
+                case TraktKitError.handlingRetry:
+                    break
                 default:
-                    completion(.error(error: self.createErrorWithStatusCode(httpResponse.statusCode)))
+                    completion(.error(error: error))
                 }
                 return
             }
@@ -424,7 +482,7 @@ extension TraktManager {
             
             // Check data
             guard let data = data else {
-                completion(.error(error: TraktKitNoDataError))
+                completion(.error(error: TraktKitError.couldNotParseData))
                 return
             }
             
